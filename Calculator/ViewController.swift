@@ -33,7 +33,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var historyLabel: UILabel!
     
     var firstVal = "", secondVal = "", op: String = ""
-    var canClear = true, hasOp = false, isFirstNum = true
+    var canClear = true, hasOp = false, isFirstNum = true, canShow = false
     var lastResult: String = ""
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -71,7 +71,7 @@ class ViewController: UIViewController {
         
         switch txt {
         case "+", "-", "×", "÷", "%":
-            print(firstVal)
+            
             if hasOp {
                 op = txt
             }
@@ -79,12 +79,22 @@ class ViewController: UIViewController {
             op = txt
             isFirstNum = false
             hasOp = true
+            canShow = true
+            
+            let t = Double(resultLabel.text!) ?? 0.00
+            resultLabel.text = floor(t) == t ? String(format: "%.0f", t) : String(format: "%.2f", t)
             
             historyLabel.text = "\(resultLabel.text!) \(op)"
             
         case "+/-" :
 
             if isFirstNum {
+                
+                if firstVal == "" {
+                    if resultLabel.text != "0" {
+                        firstVal = resultLabel.text!
+                    }
+                }
                 
                 if Int(firstVal)! > 0 {
                     firstVal = "-" + firstVal
@@ -113,11 +123,18 @@ class ViewController: UIViewController {
             
             if Double(resultLabel.text!) != nil {
 
-                historyLabel.text = historyLabel.text! + " \(resultLabel.text!)"
-                let result = calculate()
-                resultLabel.text = floor(result) == result ? String(format: "%.0f", result) : String(format: "%.2f", result)
-                
-                lastResult = resultLabel.text!
+                if canShow {
+                    let t = Double(resultLabel.text!) ?? 0.00
+                    resultLabel.text = floor(t) == t ? String(format: "%.0f", t) : String(format: "%.2f", t)
+                    historyLabel.text = historyLabel.text! + " \(resultLabel.text!)"
+                    
+                    let result = calculate()
+                    resultLabel.text = floor(result) == result ? String(format: "%.0f", result) : String(format: "%.2f", result)
+                    
+                    lastResult = resultLabel.text!
+                    
+                    canShow = false
+                }
                 
                 firstVal = ""
                 secondVal = ""
