@@ -32,9 +32,15 @@ class ViewController: UIViewController {
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var historyLabel: UILabel!
     
-    var firstVal = "", secondVal = "", op: String = ""
-    var canClear = true, hasOp = false, isFirstNum = true, canShow = false
-    var lastResult: String = ""
+    var firstVal = ""
+    var secondVal = ""
+    var op = ""
+    var hasOp = false
+    var isFirstNum = true
+    var canShow = false
+    var canClear = true
+    var canOperate = false
+    var lastResult = ""
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -65,12 +71,34 @@ class ViewController: UIViewController {
     }
     
     @objc func getButtonPress(_ sender : customButton) {
-        //print(sender.currentTitle!)
+        
+        if canClear {
+            
+        }
         
         let txt = sender.currentTitle!
         
         switch txt {
         case "+", "-", "×", "÷", "%":
+            
+            if firstVal == "" {
+                firstVal = resultLabel.text!
+            }
+        
+            if canOperate && secondVal != "" {
+                print("-----")
+                let result = calculate()
+                if String(result) == "inf" {
+                    resultLabel.text = "∞"
+                }
+                print(result)
+                resultLabel.text = floor(result) == result ? String(format: "%.0f", result) : String(format: "%g", result)
+                isFirstNum = true
+                lastResult = String(result)
+                firstVal = lastResult
+                secondVal = ""
+                hasOp = false
+            }
             
             if hasOp {
                 op = txt
@@ -81,39 +109,46 @@ class ViewController: UIViewController {
             hasOp = true
             canShow = true
             
-            let t = Double(resultLabel.text!) ?? 0.00
-            resultLabel.text = floor(t) == t ? String(format: "%.0f", t) : String(format: "%.2f", t)
+            let t = Double(firstVal)!
+            firstVal = floor(t) == t ? String(format: "%.0f", t) : String(format: "%g", t)
+            historyLabel.text = "\(firstVal) \(op)"
             
-            historyLabel.text = "\(resultLabel.text!) \(op)"
+            resultLabel.text = "0"
             
         case "+/-" :
-
+            
             if isFirstNum {
                 
-                if firstVal == "" {
-                    if resultLabel.text != "0" {
-                        firstVal = resultLabel.text!
-                    }
-                }
+                print(firstVal)
                 
-                if Int(firstVal)! > 0 {
-                    firstVal = "-" + firstVal
+                if !String(firstVal).hasPrefix("-") {
+                    if firstVal == "" {
+                        firstVal = "-0" + firstVal
+                    }
+                    else {
+                        firstVal = "-" + firstVal
+                    }
                     resultLabel.text = firstVal
                 }
                 else {
-                    firstVal = String(abs(Int(firstVal)!))
+                    firstVal.remove(at: firstVal.characters.index(of: "-")!)
                     resultLabel.text = firstVal
                 }
                 
             }
             else {
                 
-                if Int(secondVal)! > 0 {
-                    secondVal = "-" + secondVal
+                if !String(secondVal).hasPrefix("-") {
+                    if secondVal == "" {
+                        secondVal = "-0" + secondVal
+                    }
+                    else {
+                        secondVal = "-" + secondVal
+                    }
                     resultLabel.text = secondVal
                 }
                 else {
-                    secondVal = String(abs(Int(secondVal)!))
+                    secondVal.remove(at: secondVal.characters.index(of: "-")!)
                     resultLabel.text = secondVal
                 }
                 
@@ -125,13 +160,17 @@ class ViewController: UIViewController {
 
                 if canShow {
                     let t = Double(resultLabel.text!) ?? 0.00
-                    resultLabel.text = floor(t) == t ? String(format: "%.0f", t) : String(format: "%.2f", t)
+                    resultLabel.text = floor(t) == t ? String(format: "%.0f", t) : String(format: "%g", t)
                     historyLabel.text = historyLabel.text! + " \(resultLabel.text!)"
                     
                     let result = calculate()
-                    resultLabel.text = floor(result) == result ? String(format: "%.0f", result) : String(format: "%.2f", result)
+                    if String(result) == "inf" {
+                        resultLabel.text = "∞"
+                    }
+                    print(result)
+                    resultLabel.text = floor(result) == result ? String(format: "%.0f", result) : String(format: "%g", result)
                     
-                    lastResult = resultLabel.text!
+                    lastResult = String(result)
                     
                     canShow = false
                 }
@@ -139,8 +178,8 @@ class ViewController: UIViewController {
                 firstVal = ""
                 secondVal = ""
                 hasOp = false
-                op = ""
                 isFirstNum = true
+                canOperate = false
                 
             }
             
@@ -154,11 +193,14 @@ class ViewController: UIViewController {
             isFirstNum = true
             hasOp = false
             lastResult = ""
+            canOperate = false
             
         default:
             var num = txt
             
-//            print("Num: \(num), lastResult: \(lastResult), firstVal: \(firstVal), secondVal: \(secondVal), hasOp: \(hasOp), isFirstNum: \(isFirstNum)")
+            if txt == "." && resultLabel.text == "0" {
+                num = "0."
+            }
             
             if firstVal == "" && lastResult != "" && hasOp == true {
                 isFirstNum = false
@@ -186,6 +228,7 @@ class ViewController: UIViewController {
                 
                 secondVal = secondVal + num
                 resultLabel.text = secondVal
+                canOperate = true
             }
             
         }
@@ -199,7 +242,7 @@ class ViewController: UIViewController {
         firstVal = ""
         secondVal = ""
         
-        //print("\(first) \(second)")
+        print("\(first) \(op) \(second)")
         
         switch op {
         case "+":
